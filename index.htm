@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Product Viewer</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  </head>
+  <body class="bg-gray-100 p-8">
+    <h1 class="text-2xl font-bold mb-5">Products</h1>
+    <div id="productsTable" class="mb-5"></div>
+    <button
+      id="prevPage"
+      class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2"
+    >
+      Prev
+    </button>
+    <button
+      id="nextPage"
+      class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+    >
+      Next
+    </button>
+    <span class="ml-3">
+      <span id="currentPage"></span> / <span id="totalPages"></span>
+    </span>
+    <script>
+      let currentPage = 0;
+      const productsPerPage = 10;
+      let products = [];
+
+      function fetchProducts() {
+        $.get("https://dummyjson.com/products?limit=100", function (data) {
+          products = data.products;
+          displayProducts();
+          updateTotlaPages();
+        });
+      }
+
+      function displayProducts() {
+        const startIndex = currentPage * productsPerPage;
+        const endIndex = startIndex + productsPerPage;
+        const currentProducts = products.slice(startIndex, endIndex);
+
+        let tableHTML =
+          '<table class="table-auto w-full bg-white rounded shadow"><thead><tr><th class="px-4 py-2">Name</th><th class="px-4 py-2">Price</th></tr></thead><tbody>';
+        currentProducts.forEach((product) => {
+          tableHTML += `<tr><td class="border px-4 py-2">${product.title}</td><td class="border px-4 py-2">${product.price}</td></tr>`;
+        });
+        tableHTML += "</tbody></table>";
+
+        $("#productsTable").html(tableHTML);
+      }
+
+      $("#prevPage").click(function () {
+        if (currentPage > 0) {
+          currentPage--;
+          displayProducts();
+          updatecurrentPageCount();
+        }
+      });
+
+      $("#nextPage").click(function () {
+        if ((currentPage + 1) * productsPerPage < products.length) {
+          currentPage++;
+          displayProducts();
+          updatecurrentPageCount();
+        }
+      });
+
+      updatecurrentPageCount = () => {
+        let totalPages = Math.ceil(products.length / productsPerPage);
+        let totalPagesElement = document.getElementById("currentPage");
+        totalPagesElement.innerHTML = currentPage + 1;
+
+        if (currentPage === 0) {
+          document.getElementById("prevPage").disabled = true;
+          document.getElementById("prevPage").classList.add("opacity-50");
+        } else if (currentPage === totalPages - 1) {
+          document.getElementById("nextPage").disabled = true;
+          document.getElementById("nextPage").classList.add("opacity-50");
+        } else {
+          document.getElementById("prevPage").disabled = false;
+          document.getElementById("prevPage").classList.remove("opacity-50");
+          document.getElementById("nextPage").disabled = false;
+          document.getElementById("nextPage").classList.remove("opacity-50");
+        }
+      };
+
+      updateTotlaPages = () => {
+        let totalPages = Math.ceil(products.length / productsPerPage);
+        let totalPagesElement = document.getElementById("totalPages");
+        totalPagesElement.innerHTML = totalPages;
+      };
+
+      fetchProducts();
+      updatecurrentPageCount();
+    </script>
+  </body>
+</html>
